@@ -28,7 +28,7 @@ If you resize your book while reading it, your annotations will be WONKY. This i
 If you have any questions or a feature request, please submit an issue in this repo.
 If you're experiencing issues with the plugin, please provide your `.adds/koreader/pencil_input_debug.log` (you may need to enable debugging in the plugin settings) and describe the problem in an issue in this repo.
 
-## Feautres In the Pipeline
+## Features In the Pipeline
 
 1. Annotation color selection
 2. Export of annotions of some kind
