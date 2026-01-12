@@ -6,6 +6,8 @@ This has been tested on:
 
 - Kobo Libra Color/Kobo Pencil 2/Epub format
 
+**This will currently only work on Kobo devices! I will attempt to add other device support by request and at a later date**
+
 Due to Kobo's pencil tools not being bluetooth devices, there is no way to intercept the side button click, or to differentiate between the eraser side and stylus side.
 
 If you resize your book while reading it, your annotations will be WONKY. This is something I will eventually address but for now, get your book set before you start writing.
