@@ -417,7 +417,10 @@ function Pencil:addRawPoint(x, y)
     -- Draw to framebuffer and track dirty region
     local dirty_x, dirty_y, dirty_w, dirty_h
     if n == 1 then
-        Screen.bb:paintRect(x - half_w, y - half_w, width + 4, width + 4, color)
+        -- Draw first point same size as line segments for consistency
+        local half_w_draw = math.floor(width / 2)
+        Screen.bb:paintRect(x - half_w_draw, y - half_w_draw, width, width, color)
+        -- Use slightly larger dirty region for refresh padding
         dirty_x = x - half_w
         dirty_y = y - half_w
         dirty_w = width + 4
