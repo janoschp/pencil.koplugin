@@ -212,4 +212,109 @@ describe("Geometry", function()
 
     end)
 
+    describe("transformForRotation", function()
+        -- Test with a typical e-reader screen: 1072x1448 (Kobo Libra)
+        local WIDTH = 1072
+        local HEIGHT = 1448
+
+        describe("ROTATION_UPRIGHT (0)", function()
+            it("returns coordinates unchanged", function()
+                local x, y = Geometry.transformForRotation(100, 200, Geometry.ROTATION_UPRIGHT, WIDTH, HEIGHT)
+                assert.equals(100, x)
+                assert.equals(200, y)
+            end)
+
+            it("handles corner coordinates", function()
+                local x, y = Geometry.transformForRotation(0, 0, Geometry.ROTATION_UPRIGHT, WIDTH, HEIGHT)
+                assert.equals(0, x)
+                assert.equals(0, y)
+
+                x, y = Geometry.transformForRotation(WIDTH, HEIGHT, Geometry.ROTATION_UPRIGHT, WIDTH, HEIGHT)
+                assert.equals(WIDTH, x)
+                assert.equals(HEIGHT, y)
+            end)
+        end)
+
+        describe("ROTATION_CLOCKWISE (1) - 90 degrees", function()
+            it("transforms coordinates correctly", function()
+                -- Formula: x' = width - y, y' = x
+                local x, y = Geometry.transformForRotation(100, 200, Geometry.ROTATION_CLOCKWISE, WIDTH, HEIGHT)
+                assert.equals(WIDTH - 200, x)  -- 1072 - 200 = 872
+                assert.equals(100, y)
+            end)
+
+            it("transforms top-left corner to top-right", function()
+                local x, y = Geometry.transformForRotation(0, 0, Geometry.ROTATION_CLOCKWISE, WIDTH, HEIGHT)
+                assert.equals(WIDTH, x)  -- 1072
+                assert.equals(0, y)
+            end)
+
+            it("transforms bottom-right to bottom-left", function()
+                local x, y = Geometry.transformForRotation(WIDTH, HEIGHT, Geometry.ROTATION_CLOCKWISE, WIDTH, HEIGHT)
+                assert.equals(WIDTH - HEIGHT, x)  -- 1072 - 1448 = -376
+                assert.equals(WIDTH, y)           -- 1072
+            end)
+        end)
+
+        describe("ROTATION_UPSIDE_DOWN (2) - 180 degrees", function()
+            it("transforms coordinates correctly", function()
+                -- Formula: x' = width - x, y' = height - y
+                local x, y = Geometry.transformForRotation(100, 200, Geometry.ROTATION_UPSIDE_DOWN, WIDTH, HEIGHT)
+                assert.equals(WIDTH - 100, x)   -- 1072 - 100 = 972
+                assert.equals(HEIGHT - 200, y)  -- 1448 - 200 = 1248
+            end)
+
+            it("transforms origin to opposite corner", function()
+                local x, y = Geometry.transformForRotation(0, 0, Geometry.ROTATION_UPSIDE_DOWN, WIDTH, HEIGHT)
+                assert.equals(WIDTH, x)
+                assert.equals(HEIGHT, y)
+            end)
+
+            it("transforms opposite corner to origin", function()
+                local x, y = Geometry.transformForRotation(WIDTH, HEIGHT, Geometry.ROTATION_UPSIDE_DOWN, WIDTH, HEIGHT)
+                assert.equals(0, x)
+                assert.equals(0, y)
+            end)
+        end)
+
+        describe("ROTATION_COUNTER_CLOCKWISE (3) - 270 degrees", function()
+            it("transforms coordinates correctly", function()
+                -- Formula: x' = y, y' = height - x
+                local x, y = Geometry.transformForRotation(100, 200, Geometry.ROTATION_COUNTER_CLOCKWISE, WIDTH, HEIGHT)
+                assert.equals(200, x)
+                assert.equals(HEIGHT - 100, y)  -- 1448 - 100 = 1348
+            end)
+
+            it("transforms top-left to bottom-left", function()
+                local x, y = Geometry.transformForRotation(0, 0, Geometry.ROTATION_COUNTER_CLOCKWISE, WIDTH, HEIGHT)
+                assert.equals(0, x)
+                assert.equals(HEIGHT, y)  -- 1448
+            end)
+
+            it("transforms bottom-right to top-right", function()
+                local x, y = Geometry.transformForRotation(WIDTH, HEIGHT, Geometry.ROTATION_COUNTER_CLOCKWISE, WIDTH, HEIGHT)
+                assert.equals(HEIGHT, x)          -- 1448
+                assert.equals(HEIGHT - WIDTH, y)  -- 1448 - 1072 = 376
+            end)
+        end)
+
+        describe("unknown rotation", function()
+            it("returns coordinates unchanged for unknown rotation values", function()
+                local x, y = Geometry.transformForRotation(100, 200, 99, WIDTH, HEIGHT)
+                assert.equals(100, x)
+                assert.equals(200, y)
+            end)
+        end)
+
+        describe("rotation constants", function()
+            it("defines correct constant values", function()
+                assert.equals(0, Geometry.ROTATION_UPRIGHT)
+                assert.equals(1, Geometry.ROTATION_CLOCKWISE)
+                assert.equals(2, Geometry.ROTATION_UPSIDE_DOWN)
+                assert.equals(3, Geometry.ROTATION_COUNTER_CLOCKWISE)
+            end)
+        end)
+
+    end)
+
 end)

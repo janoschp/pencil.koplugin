@@ -84,4 +84,31 @@ function Geometry.distanceSquared(x1, y1, x2, y2)
     return dx * dx + dy * dy
 end
 
+-- Rotation mode constants (matches KOReader's framebuffer constants)
+Geometry.ROTATION_UPRIGHT = 0
+Geometry.ROTATION_CLOCKWISE = 1
+Geometry.ROTATION_UPSIDE_DOWN = 2
+Geometry.ROTATION_COUNTER_CLOCKWISE = 3
+
+--- Transform coordinates based on screen rotation.
+-- Converts from hardware/physical coordinate space to logical/display space.
+-- @param x Raw X coordinate from hardware
+-- @param y Raw Y coordinate from hardware
+-- @param rotation Rotation mode (0=upright, 1=CW, 2=upside-down, 3=CCW)
+-- @param screen_width Current logical screen width
+-- @param screen_height Current logical screen height
+-- @return number, number Transformed X and Y coordinates
+function Geometry.transformForRotation(x, y, rotation, screen_width, screen_height)
+    if rotation == Geometry.ROTATION_UPRIGHT then
+        return x, y
+    elseif rotation == Geometry.ROTATION_CLOCKWISE then
+        return screen_width - y, x
+    elseif rotation == Geometry.ROTATION_UPSIDE_DOWN then
+        return screen_width - x, screen_height - y
+    elseif rotation == Geometry.ROTATION_COUNTER_CLOCKWISE then
+        return y, screen_height - x
+    end
+    return x, y  -- fallback for unknown rotation
+end
+
 return Geometry
