@@ -232,6 +232,13 @@ function Pencil:setupStylusCallback()
     logger.info("Pencil: stylus callback registered")
 end
 
+-- Transform stylus coordinates based on screen rotation
+-- Raw stylus coordinates are in hardware space; framebuffer expects logical (rotated) space
+function Pencil:transformCoordinates(x, y)
+    local rotation = Screen:getRotationMode()
+    return PencilGeometry.transformForRotation(x, y, rotation, Screen:getWidth(), Screen:getHeight())
+end
+
 
 -- Handle a stylus slot from the callback
 -- slot = {slot=N, id=N, x=N, y=N, tool=N, timev=timestamp}
@@ -275,8 +282,9 @@ function Pencil:handleStylusSlot(input, slot)
                 end
             end
 
-            local x = slot.x or self.pen_x
-            local y = slot.y or self.pen_y
+            local raw_x = slot.x or self.pen_x
+            local raw_y = slot.y or self.pen_y
+            local x, y = self:transformCoordinates(raw_x, raw_y)
             -- Erase on first touch OR when position changes
             if first_touch or x ~= self.pen_x or y ~= self.pen_y then
                 local page = self:getCurrentPage()
@@ -334,8 +342,9 @@ function Pencil:handleStylusSlot(input, slot)
         end
 
         -- Add point if position changed
-        local x = slot.x or self.pen_x
-        local y = slot.y or self.pen_y
+        local raw_x = slot.x or self.pen_x
+        local raw_y = slot.y or self.pen_y
+        local x, y = self:transformCoordinates(raw_x, raw_y)
         if x ~= self.pen_x or y ~= self.pen_y then
             self:addRawPoint(x, y)
             self.pen_x = x
