@@ -43,6 +43,8 @@ local Pencil = InputContainer:extend{
     touch_zones_registered = false,
     undo_stack = {},     -- For undo functionality
     eraser_tool_active = false,  -- Track if physical eraser end is in use (via BTN_TOOL_RUBBER)
+    eraser_button_active = false,  -- Hardware eraser button held
+    eraser_button_deleted = {},    -- Track deletions for undo
 
     -- Stylus callback for lowest latency (via Input:registerStylusCallback)
     stylus_callback_registered = false,
@@ -244,6 +246,28 @@ end
 -- slot = {slot=N, id=N, x=N, y=N, tool=N, timev=timestamp}
 -- id >= 0 means contact active, id == -1 means contact lifted
 function Pencil:handleStylusSlot(input, slot)
+    -- Hardware eraser button mode - works even if pencil disabled
+    if self.eraser_button_active then
+        if slot.id and slot.id >= 0 then
+            local raw_x = slot.x or self.pen_x
+            local raw_y = slot.y or self.pen_y
+            local x, y = self:transformCoordinates(raw_x, raw_y)
+            local page = self:getCurrentPage()
+            local deleted = self:eraseAtPoint(x, y, page)
+            if deleted then
+                for _, stroke in ipairs(deleted) do
+                    table.insert(self.eraser_button_deleted, stroke)
+                end
+                self.view:paintTo(Screen.bb, 0, 0)
+                self:paintTo(Screen.bb, 0, 0)
+                Screen:refreshFast(0, 0, Screen:getWidth(), Screen:getHeight())
+            end
+            self.pen_x = x
+            self.pen_y = y
+        end
+        return true
+    end
+
     if not self:isEnabled() then return false end
 
     -- Log in debug mode
@@ -936,6 +960,14 @@ function Pencil:onKeyPress(key)
         self:writeDebugLog(string.format("KEY PRESS: %s", key_str))
     end
 
+    -- Hardware Eraser button - works regardless of pencil enabled state
+    if key.key == "Eraser" then
+        logger.info("Pencil: Eraser button PRESSED")
+        self.eraser_button_active = true
+        self.eraser_button_deleted = {}
+        return true
+    end
+
     if not self:isEnabled() then return false end
 
     -- BTN_TOOL_RUBBER - physical eraser end (if device supports it)
@@ -967,6 +999,19 @@ function Pencil:onKeyRelease(key)
     -- Always log key events when debug mode is on (even if not enabled)
     if self.input_debug_mode then
         self:writeDebugLog(string.format("KEY RELEASE: %s", key_str))
+    end
+
+    -- Hardware Eraser button released
+    if key.key == "Eraser" and self.eraser_button_active then
+        logger.info("Pencil: Eraser button RELEASED")
+        self.eraser_button_active = false
+        if self.eraser_button_deleted and #self.eraser_button_deleted > 0 then
+            table.insert(self.undo_stack, { type = "delete", strokes = self.eraser_button_deleted })
+            self:saveStrokes()
+        end
+        self.eraser_button_deleted = nil
+        UIManager:setDirty(self.view, "ui")
+        return true
     end
 
     if not self:isEnabled() then return false end
