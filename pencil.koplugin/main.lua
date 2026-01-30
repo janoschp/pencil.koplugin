@@ -743,22 +743,6 @@ function Pencil:addToMainMenu(menu_items)
         sorting_hint = "more_tools",
         sub_item_table = {
             {
-                text = _("Enable pencil"),
-                checked_func = function()
-                    return self:isEnabled()
-                end,
-                callback = function()
-                    local new_state = not self:isEnabled()
-                    self:setEnabled(new_state)
-                    if new_state then
-                        self:setupPenInput()
-                    else
-                        self:teardownPenInput()
-                    end
-                end,
-                separator = true,
-            },
-            {
                 text = _("Tool"),
                 help_text = _("Select pencil or eraser."),
                 sub_item_table = {
@@ -831,28 +815,6 @@ function Pencil:addToMainMenu(menu_items)
                             text = _("Input debug mode disabled."),
                         })
                     end
-                end,
-            },
-            {
-                text = _("View debug log path"),
-                enabled_func = function()
-                    return self.input_debug_mode
-                end,
-                callback = function()
-                    local log_path = self:getDebugLogPath()
-                    -- Check if log file exists
-                    local f = io.open(log_path, "r")
-                    local size = 0
-                    local lines = 0
-                    if f then
-                        local content = f:read("*a")
-                        size = #content
-                        for _ in content:gmatch("\n") do lines = lines + 1 end
-                        f:close()
-                    end
-                    UIManager:show(InfoMessage:new{
-                        text = T(_("Debug log location:\n%1\n\nSize: %2 bytes\nLines: %3\n\nConnect your Kobo via USB to access this file."), log_path, size, lines),
-                    })
                 end,
             },
             {
